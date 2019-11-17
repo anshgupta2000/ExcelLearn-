@@ -1,0 +1,47 @@
+# Imports the Google Cloud client library
+from google.cloud import language
+from google.cloud.language import enums
+from google.cloud.language import types
+
+# Instantiates a client
+client = language.LanguageServiceClient()
+
+
+def course_review_score(reviews_list):
+    """ calculates the final score to be given to a course taking in to account
+        all the ratings
+    """
+    score = 0
+    score_list = []
+    for review in reviews_list: # going through all reviews in the list of reviews
+        the_review = one_review_score(review) # calling the function to get sentiment analysis of a particular review
+        total = the_review[0] * the_review[1] # multiplying the sentiment score and magnitude
+        score_list.append(total)
+
+    return sum(score_list) # course review score will be sum of all courses in the list
+
+
+def one_review_score(review):
+    """ calculates the sentiment score of a particular review """
+    # The text to analyze
+    text = review
+    document = types.Document(content=text, type=enums.Document.Type.PLAIN_TEXT)
+
+    # Detects the sentiment of the text
+    sentiment = client.analyze_sentiment(document=document).document_sentiment
+    return sentiment.score, sentiment.magnitude
+
+def sorting_courses(course_list):
+    """ sorts all the courses based on the review scores/ratings """
+    
+    ranking_courses = [[course_review_score(course), course] for course in course_list] # creating a list of all course scores with the courses
+    ranking_courses.sort(reverse = True) # courses are now sorted in descending order of their course scores
+
+    # CHECK IF YOU NEED TO DO ranking_courses = ranking_courses.sort(reverse = True) INSTEAD
+
+    course_list = [x[1] for x in ranking_courses] # courses have been ranked in descending order!
+
+    return course_list
+        
+    
+    
